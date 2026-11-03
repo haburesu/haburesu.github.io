@@ -336,7 +336,7 @@ body{background:radial-gradient(1200px 520px at 100% -10%,color-mix(in srgb,var(
 <div id="viewer" hidden><div class="panel"><div class="ph"><h2>الدليل</h2><button class="x" data-act="closeviewer" aria-label="إغلاق">×</button></div><div class="pb" id="viewer-body"></div></div></div>
 
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Morango"><link rel="apple-touch-icon" href="icon-512.png"><link rel="icon" href="icon-192.png">
-<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103125846"}</script>
+<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103135341"}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>/* Morango standalone: Supabase backend behind the same db API the app uses (doc/collection/where/orderBy/limit/onSnapshot) */
 (function(){
@@ -349,18 +349,14 @@ function listen(c,f){(L[c]||(L[c]=new Set())).add(f);return()=>L[c].delete(f)}
 function startRealtime(){if(chan)return;chan=sb.channel('docs-all').on('postgres_changes',{event:'*',schema:'public',table:'docs'},p=>{const r=p.new&&p.new.col?p.new:p.old;if(r&&r.col)fire(r.col,r.id)}).subscribe(st=>{if(st==='SUBSCRIBED')Object.keys(L).forEach(c=>fire(c,null))})}
 function loginUI(err){return new Promise(res=>{let d=document.getElementById('sb-login');if(!d){d=document.createElement('div');d.id='sb-login';document.body.appendChild(d)}
   d.style.cssText='position:fixed;inset:0;z-index:9999;background:var(--bg,#fff6f7);display:flex;align-items:center;justify-content:center;padding:20px;direction:rtl;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif';
-  d.innerHTML=`<form style="max-width:360px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center"><div style="font-size:3.4rem">🍓</div><div style="font-family:'Source Serif 4',Georgia,serif;font-weight:800;font-size:2rem;letter-spacing:.06em;direction:ltr">MORANGO</div><div style="color:#8c6670">أول مرة فهاد الجهاز: دخل الكود ديال المخبزة</div><input name="pw" type="password" autocomplete="current-password" placeholder="🔑 الكود ديال المخبزة" style="height:52px;border-radius:14px;border:2px solid #f2d8de;padding:0 14px;font-size:1.1rem;text-align:center;direction:ltr">${err?`<div style="color:#b8252f">${err}</div>`:''}<button style="height:52px;border-radius:14px;border:0;background:#e02843;color:#fff;font-weight:800;font-size:1.1rem">دخول</button></form>`;
-  const f=d.querySelector('form');f.pw.focus();f.onsubmit=async e=>{e.preventDefault();const b=f.querySelector('button');b.disabled=true;b.textContent='⏳';const {error}=await sb.auth.signInWithPassword({email:EMAIL,password:f.pw.value.trim()});if(error){res(loginUI('❌ الكود غالط ولا ما كاينش الأنترنيت'));return}d.remove();res(f.pw.value.trim())}})}
-async function importSeed(pw){try{const {data:m}=await sb.from('docs').select('id').eq('col','_meta').eq('id','seed').maybeSingle();if(m)return;
-  const r=await fetch('seed.bin?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const buf=new Uint8Array(await r.arrayBuffer());if(String.fromCharCode(...buf.slice(0,4))!=='MSD1')return;
-  const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:9999;background:#fff6f7;display:flex;align-items:center;justify-content:center;font:700 1.2rem Tahoma,sans-serif;direction:rtl;color:#3a1a22';ov.textContent='⏳ كنحطّو المعطيات ديالك فالتطبيق الجديد…';document.body.appendChild(ov);
-  const salt=buf.slice(4,20),iv=buf.slice(20,32),ct=buf.slice(32);const bk=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
-  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},bk,{name:'AES-GCM',length:256},false,['decrypt']);
-  const rows=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct)));
-  let chunk=[],sz=0,done=0;const flush=async()=>{if(!chunk.length)return;const {error}=await sb.from('docs').upsert(chunk,{onConflict:'col,id'});if(error)throw error;done+=chunk.length;ov.textContent='⏳ '+done+' / '+rows.length;chunk=[];sz=0};
-  for(const x of rows){const n=JSON.stringify(x.data).length;if(sz+n>700000)await flush();chunk.push({col:x.col,id:x.id,data:x.data});sz+=n}await flush();
-  await sb.rpc('doc_set',{p_col:'_meta',p_id:'seed',p_data:{ts:Date.now(),n:rows.length}});ov.remove()}catch(e){console.error('seed import',e);alert('مشكل فنقل المعطيات: '+(e.message||e))}}
-async function ensure(){if(authed)return authed;authed=(async()=>{sb=window.supabase.createClient(CFG.url,CFG.key,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'morango-auth'}});const {data}=await sb.auth.getSession();if(!data?.session){const pw=await loginUI();await importSeed(pw)}startRealtime();
+  const inp='height:52px;border-radius:14px;border:2px solid #f2d8de;padding:0 14px;font-size:1.1rem;text-align:center';
+  d.innerHTML=`<form style="max-width:360px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center"><div style="font-size:3.4rem">🍓</div><div style="font-family:'Source Serif 4',Georgia,serif;font-weight:800;font-size:2rem;letter-spacing:.06em;direction:ltr">MORANGO</div><div style="color:#8c6670">جهاز جديد: طلب الكود من المسير<br><small>(☰ المزيد ← 📱 الأجهزة)</small></div><input name="nm" placeholder="سمية الجهاز (مثلا: آيباد روان)" maxlength="60" style="${inp}"><input name="pw" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="🔑 الكود (6 أرقام)" style="${inp};direction:ltr;letter-spacing:.3em;font-weight:800">${err?`<div style="color:#b8252f">${err}</div>`:''}<button style="height:52px;border-radius:14px;border:0;background:#e02843;color:#fff;font-weight:800;font-size:1.1rem">دخول</button></form>`;
+  const f=d.querySelector('form');try{f.nm.value=localStorage.getItem('morango-devname')||''}catch(_){}(f.nm.value?f.pw:f.nm).focus();
+  f.onsubmit=async e=>{e.preventDefault();const code=f.pw.value.replace(/\D/g,''),nm=f.nm.value.trim()||(/iPad/.test(navigator.userAgent)?'iPad':/iPhone|Android/.test(navigator.userAgent)?'تيليفون':'جهاز');try{localStorage.setItem('morango-devname',nm)}catch(_){}
+    if(code.length!==6){res(loginUI('❌ الكود خاصو 6 أرقام'));return}const b=f.querySelector('button');b.disabled=true;b.textContent='⏳';
+    try{const {data,error}=await sb.rpc('enroll_device',{p_code:code,p_label:nm});if(error)throw error;if(!data||data.error){res(loginUI(data&&data.error==='bad'?'❌ الكود غالط ولا تخدم من قبل. طلب الكود الجديد':'❌ ما كاينش كود، طلب من المسير يحل 📱 الأجهزة'));return}
+      const r=await sb.auth.signInWithPassword({email:data.email,password:data.password});if(r.error)throw r.error;d.remove();res(true)}catch(e2){res(loginUI('❌ ما كاينش الأنترنيت ولا وقع مشكل، عاود'))}}})}
+async function ensure(){if(authed)return authed;authed=(async()=>{sb=window.supabase.createClient(CFG.url,CFG.key,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'morango-auth'}});const {data}=await sb.auth.getSession();if(!data?.session)await loginUI();startRealtime();
   sb.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'||(!s&&ev!=='INITIAL_SESSION')){authed=null;location.reload()}});return true})();return authed}
 async function fetchAll(c,F,O,N){const out=[];let from=0;const page=1000;for(;;){let q=sb.from('docs').select('id,data').eq('col',c);
   for(const [f,op,v] of F){const k='data->>'+f;if(op==='==')q=q.eq(k,String(v));else if(op==='>=')q=q.gte(k,String(v));else if(op==='<=')q=q.lte(k,String(v));else if(op==='>')q=q.gt(k,String(v));else if(op==='<')q=q.lt(k,String(v));else if(op==='in')q=q.in(k,v.map(String));else if(op==='!=')q=q.neq(k,String(v))}
@@ -380,6 +376,7 @@ function docRef(c,id){return{id,
 const db={collection:c=>query(c),doc:p=>{const i=p.indexOf('/');return docRef(p.slice(0,i),p.slice(i+1))}};
 const downloads={save:async({filename,data})=>{const b=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=filename||'file';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000)}};
 window.claude={use:async n=>n==='db'?(await ensure(),db):n==='downloads'?downloads:null};
+window.morangoDev={code:async()=>{await ensure();const {data,error}=await sb.rpc('current_device_code');if(error)throw error;return data},list:async()=>{await ensure();const {data,error}=await sb.rpc('list_devices');if(error)throw error;return data},revoke:async id=>{const {data,error}=await sb.rpc('revoke_device',{p_id:id});if(error)throw error;return data},rename:async(id,l)=>{const {data,error}=await sb.rpc('rename_device',{p_id:id,p_label:l});if(error)throw error;return data}};
 window.morangoLogout=async()=>{try{await sb.auth.signOut()}catch(_){}try{localStorage.removeItem('morango-auth')}catch(_){}location.reload()};
 /* auto-update: reload when a new version is published (only when nothing is open) */
 const BUILD=CFG.build;async function chk(){try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=(await r.json()).build;if(v&&v!==BUILD){const idle=()=>{const sh=document.getElementById('sheet');const busy=(sh&&!sh.hidden)||(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));return !busy};if(idle())location.reload();else window.__morangoUpd=true}}catch(_){}}
@@ -503,6 +500,19 @@ const SEND_LATE_MIN=120;
 const emptyB=(em,t)=>`<div class="empty"><span class="em">${em}</span>${t}</div>`;
 
 function toast(msg,bad){const t=document.createElement('div');t.className='toast'+(bad?' bad':'');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+
+function vDevices(){if(!window.morangoDev)return '<h1>📱 الأجهزة</h1><p class="muted">هاد الخاصية كتخدم غير فالتطبيق على morango-ma.github.io</p>';
+  setTimeout(devLoad,0);clearInterval(window.__devT);window.__devT=setInterval(()=>{if(S.view!=='devices'){clearInterval(window.__devT);return}devLoad(true)},5000);
+  return `<h1>📱 الأجهزة وكود الدخول</h1>
+  <div class="card" style="text-align:center;padding:22px 16px"><div class="muted">الكود ديال الجهاز الجديد</div>
+   <div id="devcode" style="font:800 2.8rem/1.2 'Source Serif 4',Georgia,serif;letter-spacing:.25em;direction:ltr;margin:10px 0;color:var(--accent,#e02843)">······</div>
+   <div class="muted" style="font-size:.9rem">عطي هاد الكود للجهاز الجديد. كيخدم مرة وحدة، ومن بعد كيتبدل بوحدو.</div></div>
+  <h2 style="margin-top:18px">الأجهزة اللي داخلين</h2><div id="devlist" class="muted">⏳</div>`}
+async function devLoad(quiet){const D=window.morangoDev;if(!D)return;try{const [c,l]=await Promise.all([D.code(),D.list()]);const ce=document.getElementById('devcode');if(ce&&c&&c.code)ce.textContent=c.code;
+  const le=document.getElementById('devlist');if(!le)return;const fd=t=>t?new Date(t).toLocaleString('fr-MA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+  le.className='';le.innerHTML=(l||[]).map(d=>`<div class="card" style="display:flex;flex-direction:row;align-items:center;text-align:right;gap:10px;margin-bottom:8px"><span style="font-size:1.6rem">${d.me?'✅':'📱'}</span><div style="flex:1;min-width:0"><b>${esc(d.label)}</b>${d.me?' <span class="muted">(هاد الجهاز)</span>':''}<div class="muted" style="font-size:.85rem">دخل: ${fd(d.created)} · آخر مرة: ${fd(d.last)}</div></div>${d.me?'':`<button class="btn" style="min-height:44px" onclick="devRename('${d.id}')">✏️</button><button class="btn" style="min-height:44px;color:#b8252f" onclick="devRevoke('${d.id}')">🚫 حبس</button>`}</div>`).join('')||'<p class="muted">ما كاين حتى جهاز</p>'}catch(e){if(!quiet)toast('ما قدرتش نجيب الأجهزة: '+(e.message||e),true)}}
+async function devRevoke(id){if(!confirm('واش متأكد بغيتي تحبس هاد الجهاز؟ غادي يخرج من التطبيق.'))return;try{await window.morangoDev.revoke(id);toast('🚫 تحبس الجهاز');devLoad()}catch(e){toast('مشكل: '+(e.message||e),true)}}
+async function devRename(id){const n=prompt('السمية الجديدة ديال الجهاز:');if(!n)return;try{await window.morangoDev.rename(id,n.trim());devLoad()}catch(e){toast('مشكل: '+(e.message||e),true)}}
 async function hashPin(uid,pin){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('bk1|'+uid+'|'+pin));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 
 /* ---------- data layer ---------- */
@@ -588,7 +598,7 @@ function draw(){
   mn.dataset.lu='';
   if(!S.ready){$('#main').innerHTML=emptyB('🥖','كيتحمل...');return}
   if(me.role==='kiosk'){if(!((S.kf.step==='msg'&&$('#ktext'))||(S.kf.step==='cand'&&$('#cname'))||(S.kf.step==='idle'&&$('.attract'))))$('#main').innerHTML=vKiosk();return}
-  const V={hist:vHist,needs:vNeeds,lots:vLots,dash:vDash,plan:vPlan,home:vHome,prod:vProd,send:vSend,pos:vPos,orders:vOrders,more:vMore,purchases:vPurchases,returns:vReturns,catalog:vCatalog,journal:vJournal,team:vTeam,loyalty:vLoyalty,report:vReport,charges:vCharges,preqs:vPreqs,inv:vInv,workers:vWorkers,tickets:vTickets,feedback:vFeedback,posreqs:vPosreqs,cands:vCands,pack:vPack,vitrine:vVitrine,vehicle:vVehicle}[S.view]||vHome;
+  const V={hist:vHist,needs:vNeeds,lots:vLots,dash:vDash,plan:vPlan,home:vHome,prod:vProd,send:vSend,pos:vPos,orders:vOrders,more:vMore,purchases:vPurchases,returns:vReturns,catalog:vCatalog,journal:vJournal,team:vTeam,loyalty:vLoyalty,report:vReport,charges:vCharges,preqs:vPreqs,inv:vInv,workers:vWorkers,tickets:vTickets,feedback:vFeedback,posreqs:vPosreqs,cands:vCands,pack:vPack,vitrine:vVitrine,vehicle:vVehicle,devices:vDevices}[S.view]||vHome;
   const y=window.scrollY;$('#main').innerHTML=V();window.scrollTo(0,y);
   if(S.view==='pos'){$('#cartslot').innerHTML=cartBar();const q=$('#q');if(q&&S.qFocus){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}
 }
@@ -815,7 +825,7 @@ function vMore(){const r=me.role;const T=[];
   if(isMgr()||r==='driver')T.unshift({i:'🚚',l:'مصاريف سيارة التوصيل',v:'vehicle',c:2});
   if(isMgr())T.unshift({i:'🔄',l:'تحويل المواد بين الورشات',a:'xfhome',c:6,b:xfList().filter(o=>o.status==='sent').length});
   if(r==='admin')T.unshift({i:'📈',l:'الأرباح حسب الورشة',v:'report',c:5},{i:'💼',l:'المصاريف',v:'charges',c:1});
-  if(r==='admin')T.push({i:'👥',l:'الفريق',v:'team',c:5});
+  if(r==='admin')T.push({i:'👥',l:'الفريق',v:'team',c:5});if(isMgr()&&window.morangoDev)T.unshift({i:'📱',l:'الأجهزة وكود الدخول',v:'devices',c:6});
   if(isMgr())T.push({i:'🗓️',l:'السجل اليومي',v:'journal',c:3},{i:'🧾',l:'شكل الوصل',a:'rcfg',c:1});
   return `<h1>☰ المزيد</h1><div class="acts">${T.map(t=>`<button class="act c${t.c}" data-act="${t.a||'go'}" ${t.v?`data-v="${t.v}"`:''}><span class="big">${t.i}</span><b>${t.l}</b>${t.b?`<span class="badge">${t.b}</span>`:''}</button>`).join('')}<button class="act c4" data-act="profile"><span class="big">🙂</span><b>الحساب ديالي</b></button></div>`}
 function vPurchases(){const l=S.ops.filter(o=>o.type==='purchase');return `${canBuy()?'<button class="act c1" data-act="newpurchase" style="min-height:90px"><span class="big">🛒</span><b>شراء جديد</b></button>':''}
