@@ -336,7 +336,7 @@ body{background:radial-gradient(1200px 520px at 100% -10%,color-mix(in srgb,var(
 <div id="viewer" hidden><div class="panel"><div class="ph"><h2>الدليل</h2><button class="x" data-act="closeviewer" aria-label="إغلاق">×</button></div><div class="pb" id="viewer-body"></div></div></div>
 
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Morango"><link rel="apple-touch-icon" href="icon-512.png"><link rel="icon" href="icon-192.png">
-<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103135341"}</script>
+<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103143113"}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>/* Morango standalone: Supabase backend behind the same db API the app uses (doc/collection/where/orderBy/limit/onSnapshot) */
 (function(){
@@ -362,16 +362,17 @@ async function fetchAll(c,F,O,N){const out=[];let from=0;const page=1000;for(;;)
   for(const [f,op,v] of F){const k='data->>'+f;if(op==='==')q=q.eq(k,String(v));else if(op==='>=')q=q.gte(k,String(v));else if(op==='<=')q=q.lte(k,String(v));else if(op==='>')q=q.gt(k,String(v));else if(op==='<')q=q.lt(k,String(v));else if(op==='in')q=q.in(k,v.map(String));else if(op==='!=')q=q.neq(k,String(v))}
   if(O)q=q.order('data->'+O[0],{ascending:O[1]!=='desc',nullsFirst:false});const lim=N?Math.min(N-out.length,page):page;q=q.range(from,from+lim-1);const {data,error}=await q;if(error)throw error;out.push(...data);if(data.length<lim||(N&&out.length>=N))break;from+=data.length}
   return out.map(r=>snap(r.id,r.data))}
+async function retry(fn){let last;for(let i=0;i<4;i++){try{const r=await fn();if(r&&r.error&&/fetch|load failed|network/i.test(r.error.message||'')){last=r.error;throw r.error}return r}catch(e){last=e;if(!/fetch|load failed|network|timeout/i.test(String(e&&e.message||e)))throw e;await new Promise(z=>setTimeout(z,800*(i+1)))}}throw last}
 function query(c,F=[],O=null,N=null){const q={where:(f,op,v)=>query(c,[...F,[f,op,v]],O,N),orderBy:(f,d)=>query(c,F,[f,d||'asc'],N),limit:n=>query(c,F,O,n),
   get:async()=>{await ensure();return{docs:await fetchAll(c,F,O,N)}},
   onSnapshot(cb,err){let alive=true,t=null,busy=false,again=false;const run=async()=>{if(!alive)return;if(busy){again=true;return}busy=true;try{await ensure();const docs=await fetchAll(c,F,O,N);if(alive)cb({docs})}catch(e){console.warn('snap',c,e);err&&err(e)}busy=false;if(again){again=false;run()}};
     const off=listen(c,()=>{clearTimeout(t);t=setTimeout(run,150)});run();return()=>{alive=false;off()}},
   doc:id=>docRef(c,id||rid()),add:async d=>{const id=rid();await docRef(c,id).set(d);return{id}}};return q}
 function docRef(c,id){return{id,
-  get:async()=>{await ensure();const {data,error}=await sb.from('docs').select('data').eq('col',c).eq('id',id).maybeSingle();if(error)throw error;return snap(id,data?data.data:null)},
-  set:async d=>{await ensure();const {error}=await sb.rpc('doc_set',{p_col:c,p_id:id,p_data:clone(d)});if(error)throw error;fire(c,id)},
-  update:async d=>{await ensure();const {error}=await sb.rpc('doc_merge',{p_col:c,p_id:id,p_patch:clone(d)});if(error)throw error;fire(c,id)},
-  delete:async()=>{await ensure();const {error}=await sb.from('docs').delete().eq('col',c).eq('id',id);if(error)throw error;fire(c,id)},
+  get:async()=>{await ensure();const {data,error}=await retry(()=>sb.from('docs').select('data').eq('col',c).eq('id',id).maybeSingle());if(error)throw error;return snap(id,data?data.data:null)},
+  set:async d=>{await ensure();const {error}=await retry(()=>sb.rpc('doc_set',{p_col:c,p_id:id,p_data:clone(d)}));if(error)throw error;fire(c,id)},
+  update:async d=>{await ensure();const {error}=await retry(()=>sb.rpc('doc_merge',{p_col:c,p_id:id,p_patch:clone(d)}));if(error)throw error;fire(c,id)},
+  delete:async()=>{await ensure();const {error}=await retry(()=>sb.from('docs').delete().eq('col',c).eq('id',id));if(error)throw error;fire(c,id)},
   onSnapshot(cb,err){let alive=true,t=null;const run=async()=>{try{const s=await this.get();if(alive)cb(s)}catch(e){console.warn('doc snap',c,id,e);err&&err(e)}};const off=listen(c,x=>{if(x&&x!==id)return;clearTimeout(t);t=setTimeout(run,150)});run();return()=>{alive=false;off()}}}}
 const db={collection:c=>query(c),doc:p=>{const i=p.indexOf('/');return docRef(p.slice(0,i),p.slice(i+1))}};
 const downloads={save:async({filename,data})=>{const b=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=filename||'file';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000)}};
