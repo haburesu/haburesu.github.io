@@ -336,7 +336,7 @@ body{background:radial-gradient(1200px 520px at 100% -10%,color-mix(in srgb,var(
 <div id="viewer" hidden><div class="panel"><div class="ph"><h2>الدليل</h2><button class="x" data-act="closeviewer" aria-label="إغلاق">×</button></div><div class="pb" id="viewer-body"></div></div></div>
 
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Morango"><link rel="apple-touch-icon" href="icon-512.png"><link rel="icon" href="icon-192.png">
-<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103143113"}</script>
+<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103145036"}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>/* Morango standalone: Supabase backend behind the same db API the app uses (doc/collection/where/orderBy/limit/onSnapshot) */
 (function(){
@@ -347,14 +347,22 @@ const snap=(id,data)=>({id,exists:data!=null,data:()=>clone(data)});
 function fire(c,id){(L[c]||new Set()).forEach(f=>{try{f(id)}catch(e){console.warn(e)}})}
 function listen(c,f){(L[c]||(L[c]=new Set())).add(f);return()=>L[c].delete(f)}
 function startRealtime(){if(chan)return;chan=sb.channel('docs-all').on('postgres_changes',{event:'*',schema:'public',table:'docs'},p=>{const r=p.new&&p.new.col?p.new:p.old;if(r&&r.col)fire(r.col,r.id)}).subscribe(st=>{if(st==='SUBSCRIBED')Object.keys(L).forEach(c=>fire(c,null))})}
+function devInfo(){const ua=navigator.userAgent;const touch=navigator.maxTouchPoints>1;let type='جهاز',os='',model='';let m;
+  if(/iPhone/.test(ua)){type='iPhone';m=ua.match(/OS (\d+)[_.](\d+)/);os=m?'iOS '+m[1]+'.'+m[2]:'iOS'}
+  else if(/iPad/.test(ua)||(/Macintosh/.test(ua)&&touch)){type='iPad';m=ua.match(/(?:OS|Version\/)(\d+)[_.](\d+)/);os=m?'iPadOS '+m[1]+'.'+m[2]:'iPadOS'}
+  else if(/Android/.test(ua)){m=ua.match(/Android (\d+(?:\.\d+)?)(?:;\s*([^;)]+))?/);os='Android '+(m?m[1]:'');model=m&&m[2]&&m[2]!=='K'?m[2].trim():'';type=/Mobile/.test(ua)?'تيليفون Android':'تابليت Android'}
+  else if(/Macintosh/.test(ua)){type='Mac';os='macOS'}else if(/Windows/.test(ua)){type='PC Windows';os='Windows'}else if(/Linux/.test(ua)){type='PC';os='Linux'}
+  const br=/CriOS|Chrome/.test(ua)&&!/Edg/.test(ua)?'Chrome':/Edg/.test(ua)?'Edge':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'';
+  const scr=Math.round(screen.width)+'×'+Math.round(screen.height);const pwa=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  return {type,os,model,browser:br,screen:scr,lang:navigator.language,app:pwa?'مثبتة':'متصفح',label:[type,model].filter(Boolean).join(' ')}}
 function loginUI(err){return new Promise(res=>{let d=document.getElementById('sb-login');if(!d){d=document.createElement('div');d.id='sb-login';document.body.appendChild(d)}
   d.style.cssText='position:fixed;inset:0;z-index:9999;background:var(--bg,#fff6f7);display:flex;align-items:center;justify-content:center;padding:20px;direction:rtl;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif';
   const inp='height:52px;border-radius:14px;border:2px solid #f2d8de;padding:0 14px;font-size:1.1rem;text-align:center';
-  d.innerHTML=`<form style="max-width:360px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center"><div style="font-size:3.4rem">🍓</div><div style="font-family:'Source Serif 4',Georgia,serif;font-weight:800;font-size:2rem;letter-spacing:.06em;direction:ltr">MORANGO</div><div style="color:#8c6670">جهاز جديد: طلب الكود من المسير<br><small>(☰ المزيد ← 📱 الأجهزة)</small></div><input name="nm" placeholder="سمية الجهاز (مثلا: آيباد روان)" maxlength="60" style="${inp}"><input name="pw" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="🔑 الكود (6 أرقام)" style="${inp};direction:ltr;letter-spacing:.3em;font-weight:800">${err?`<div style="color:#b8252f">${err}</div>`:''}<button style="height:52px;border-radius:14px;border:0;background:#e02843;color:#fff;font-weight:800;font-size:1.1rem">دخول</button></form>`;
-  const f=d.querySelector('form');try{f.nm.value=localStorage.getItem('morango-devname')||''}catch(_){}(f.nm.value?f.pw:f.nm).focus();
-  f.onsubmit=async e=>{e.preventDefault();const code=f.pw.value.replace(/\D/g,''),nm=f.nm.value.trim()||(/iPad/.test(navigator.userAgent)?'iPad':/iPhone|Android/.test(navigator.userAgent)?'تيليفون':'جهاز');try{localStorage.setItem('morango-devname',nm)}catch(_){}
+  d.innerHTML=`<form style="max-width:360px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center"><div style="font-size:3.4rem">🍓</div><div style="font-family:'Source Serif 4',Georgia,serif;font-weight:800;font-size:2rem;letter-spacing:.06em;direction:ltr">MORANGO</div><div style="color:#8c6670">جهاز جديد: طلب الكود من المسير<br><small>(☰ المزيد ← 📱 الأجهزة)</small></div><input name="pw" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="🔑 الكود (6 أرقام)" style="${inp};direction:ltr;letter-spacing:.3em;font-weight:800">${err?`<div style="color:#b8252f">${err}</div>`:''}<button style="height:52px;border-radius:14px;border:0;background:#e02843;color:#fff;font-weight:800;font-size:1.1rem">دخول</button></form>`;
+  const f=d.querySelector('form');f.pw.focus();
+  f.onsubmit=async e=>{e.preventDefault();const code=f.pw.value.replace(/\D/g,''),di=devInfo(),nm=di.label;
     if(code.length!==6){res(loginUI('❌ الكود خاصو 6 أرقام'));return}const b=f.querySelector('button');b.disabled=true;b.textContent='⏳';
-    try{const {data,error}=await sb.rpc('enroll_device',{p_code:code,p_label:nm});if(error)throw error;if(!data||data.error){res(loginUI(data&&data.error==='bad'?'❌ الكود غالط ولا تخدم من قبل. طلب الكود الجديد':'❌ ما كاينش كود، طلب من المسير يحل 📱 الأجهزة'));return}
+    try{const {data,error}=await sb.rpc('enroll_device',{p_code:code,p_label:nm,p_info:di});if(error)throw error;if(!data||data.error){res(loginUI(data&&data.error==='bad'?'❌ الكود غالط ولا تخدم من قبل. طلب الكود الجديد':'❌ ما كاينش كود، طلب من المسير يحل 📱 الأجهزة'));return}
       const r=await sb.auth.signInWithPassword({email:data.email,password:data.password});if(r.error)throw r.error;d.remove();res(true)}catch(e2){res(loginUI('❌ ما كاينش الأنترنيت ولا وقع مشكل، عاود'))}}})}
 async function ensure(){if(authed)return authed;authed=(async()=>{sb=window.supabase.createClient(CFG.url,CFG.key,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'morango-auth'}});const {data}=await sb.auth.getSession();if(!data?.session)await loginUI();startRealtime();
   sb.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'||(!s&&ev!=='INITIAL_SESSION')){authed=null;location.reload()}});return true})();return authed}
@@ -377,7 +385,7 @@ function docRef(c,id){return{id,
 const db={collection:c=>query(c),doc:p=>{const i=p.indexOf('/');return docRef(p.slice(0,i),p.slice(i+1))}};
 const downloads={save:async({filename,data})=>{const b=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=filename||'file';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000)}};
 window.claude={use:async n=>n==='db'?(await ensure(),db):n==='downloads'?downloads:null};
-window.morangoDev={code:async()=>{await ensure();const {data,error}=await sb.rpc('current_device_code');if(error)throw error;return data},list:async()=>{await ensure();const {data,error}=await sb.rpc('list_devices');if(error)throw error;return data},revoke:async id=>{const {data,error}=await sb.rpc('revoke_device',{p_id:id});if(error)throw error;return data},rename:async(id,l)=>{const {data,error}=await sb.rpc('rename_device',{p_id:id,p_label:l});if(error)throw error;return data}};
+window.morangoDev={code:async()=>{await ensure();const {data,error}=await sb.rpc('current_device_code');if(error)throw error;return data},list:async()=>{await ensure();const {data,error}=await sb.rpc('list_devices');if(error)throw error;return data},revoke:async id=>{const {data,error}=await sb.rpc('revoke_device',{p_id:id});if(error)throw error;return data},me:async()=>{await ensure();const {data,error}=await sb.rpc('my_device');if(error)throw error;return data},claim:async o=>{const {data,error}=await sb.rpc('claim_device',{p_owner:o});if(error)throw error;return data},setOwner:async(id,o)=>{const {data,error}=await sb.rpc('set_device_owner',{p_id:id,p_owner:o||''});if(error)throw error;return data},seen:async(x)=>{try{await ensure();await sb.rpc('device_seen',{p_info:Object.assign(devInfo(),x||{},{seen:Date.now()})})}catch(_){}},rename:async(id,l)=>{const {data,error}=await sb.rpc('rename_device',{p_id:id,p_label:l});if(error)throw error;return data}};
 window.morangoLogout=async()=>{try{await sb.auth.signOut()}catch(_){}try{localStorage.removeItem('morango-auth')}catch(_){}location.reload()};
 /* auto-update: reload when a new version is published (only when nothing is open) */
 const BUILD=CFG.build;async function chk(){try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=(await r.json()).build;if(v&&v!==BUILD){const idle=()=>{const sh=document.getElementById('sheet');const busy=(sh&&!sh.hidden)||(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));return !busy};if(idle())location.reload();else window.__morangoUpd=true}}catch(_){}}
@@ -511,9 +519,28 @@ function vDevices(){if(!window.morangoDev)return '<h1>📱 الأجهزة</h1><p
   <h2 style="margin-top:18px">الأجهزة اللي داخلين</h2><div id="devlist" class="muted">⏳</div>`}
 async function devLoad(quiet){const D=window.morangoDev;if(!D)return;try{const [c,l]=await Promise.all([D.code(),D.list()]);const ce=document.getElementById('devcode');if(ce&&c&&c.code)ce.textContent=c.code;
   const le=document.getElementById('devlist');if(!le)return;const fd=t=>t?new Date(t).toLocaleString('fr-MA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
-  le.className='';le.innerHTML=(l||[]).map(d=>`<div class="card" style="display:flex;flex-direction:row;align-items:center;text-align:right;gap:10px;margin-bottom:8px"><span style="font-size:1.6rem">${d.me?'✅':'📱'}</span><div style="flex:1;min-width:0"><b>${esc(d.label)}</b>${d.me?' <span class="muted">(هاد الجهاز)</span>':''}<div class="muted" style="font-size:.85rem">دخل: ${fd(d.created)} · آخر مرة: ${fd(d.last)}</div></div>${d.me?'':`<button class="btn" style="min-height:44px" onclick="devRename('${d.id}')">✏️</button><button class="btn" style="min-height:44px;color:#b8252f" onclick="devRevoke('${d.id}')">🚫 حبس</button>`}</div>`).join('')||'<p class="muted">ما كاين حتى جهاز</p>'}catch(e){if(!quiet)toast('ما قدرتش نجيب الأجهزة: '+(e.message||e),true)}}
+  le.className='';le.innerHTML=(l||[]).map(d=>`<div class="card" style="display:flex;flex-direction:row;align-items:center;text-align:right;gap:10px;margin-bottom:8px"><span style="font-size:1.6rem">${d.me?'✅':'📱'}</span><div style="flex:1;min-width:0"><b>${esc(d.label)}</b>${d.me?' <span class="muted">(هاد الجهاز)</span>':''}<div class="muted" style="font-size:.85rem">${d.info?esc([d.info.os,d.info.browser,d.info.screen,d.info.app].filter(Boolean).join(' · ')):''}${d.info&&d.info.user?'<br>👤 آخر واحد خدم بيه: '+esc(d.info.user):''}<br>${d.owner?'🔒 مربوط بـ <b>'+esc(S.users[d.owner]?.name||'؟')+'</b>':'🔓 مفتوح للجميع'}</div><div class="muted" style="font-size:.85rem">دخل: ${fd(d.created)} · آخر مرة: ${fd(d.last)}</div></div>${d.me?'':`${d.owner?`<button class="btn" style="min-height:44px" onclick="devUnbind('${d.id}')" title="فك الربط">🔓</button>`:''}<button class="btn" style="min-height:44px" onclick="devRename('${d.id}')">✏️</button><button class="btn" style="min-height:44px;color:#b8252f" onclick="devRevoke('${d.id}')">🚫 حبس</button>`}</div>`).join('')||'<p class="muted">ما كاين حتى جهاز</p>'}catch(e){if(!quiet)toast('ما قدرتش نجيب الأجهزة: '+(e.message||e),true)}}
 async function devRevoke(id){if(!confirm('واش متأكد بغيتي تحبس هاد الجهاز؟ غادي يخرج من التطبيق.'))return;try{await window.morangoDev.revoke(id);toast('🚫 تحبس الجهاز');devLoad()}catch(e){toast('مشكل: '+(e.message||e),true)}}
+async function devUnbind(id){if(!confirm('نفكّو الربط؟ أول واحد يدخل من بعد غادي يتربط بيه الجهاز.'))return;try{await window.morangoDev.setOwner(id,'');if(id===S.devId)S.devOwner=null;toast('🔓 تفك الربط');devLoad()}catch(e){toast('مشكل: '+(e.message||e),true)}}
 async function devRename(id){const n=prompt('السمية الجديدة ديال الجهاز:');if(!n)return;try{await window.morangoDev.rename(id,n.trim());devLoad()}catch(e){toast('مشكل: '+(e.message||e),true)}}
+
+/* biometric unlock (Face ID / fingerprint) via WebAuthn platform authenticator, per user per device */
+const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const ub64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0));
+function bioMap(){try{return JSON.parse(localStorage.getItem('bk-bio')||'{}')}catch(_){return {}}}
+function bioSave(m){try{localStorage.setItem('bk-bio',JSON.stringify(m))}catch(_){}}
+function bioHas(uid){return !!bioMap()[uid]}
+let BIO_OK=null;(async()=>{try{BIO_OK=!!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch(_){BIO_OK=false}})();
+const bioName=()=>/iPhone|iPad/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1)?'Face ID / Touch ID':'البصمة / الوجه';
+async function bioEnroll(u){const cred=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Morango'},user:{id:new TextEncoder().encode(u.id),name:u.name,displayName:u.name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000,attestation:'none'}});
+  const m=bioMap();m[u.id]=b64u(cred.rawId);bioSave(m)}
+async function bioCheck(uid){const id=bioMap()[uid];if(!id)return false;const a=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:ub64(id),transports:['internal']}],userVerification:'required',timeout:60000}});
+  const ad=new Uint8Array(a.response.authenticatorData);return !!(ad[32]&0x04)}
+async function bioLogin(){const u=S.loginUser&&S.users[S.loginUser];if(!u)return;try{if(await bioCheck(u.id)){devClaim(u);S.tries=0;try{localStorage.setItem('bk-uid',u.id)}catch(_){}S.loginUser=null;S.view='home';setMe();render();toast(greet()+' '+u.name+' 👋')}else toast('ما تأكدش، دخل بالكود',true)}catch(e){toast('ما خدماتش '+bioName()+'، دخل بالكود',true)}}
+async function bioOn(){try{await bioEnroll(me);toast('✅ تفعّل الدخول ب'+bioName());closeSheet()}catch(e){toast('ما تفعّلش: '+(e.name==='NotAllowedError'?'تلغى':e.message||e),true)}}
+function bioOff(){const m=bioMap();delete m[me.id];bioSave(m);toast('تحيّد الدخول ب'+bioName());closeSheet()}
+function devOwnerLoad(){if(!window.morangoDev||S.__devReq)return;S.__devReq=1;window.morangoDev.me().then(d=>{S.devOwner=d&&d.owner||null;S.devId=d&&d.id;render()}).catch(()=>{S.devOwner=null;render()})}
+function devClaim(u){if(!window.morangoDev||S.devOwner||u.role==='admin')return;window.morangoDev.claim(u.id).then(d=>{S.devOwner=d&&d.owner||null}).catch(()=>{})}
 async function hashPin(uid,pin){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('bk1|'+uid+'|'+pin));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 
 /* ---------- data layer ---------- */
@@ -533,7 +560,7 @@ async function saveMedia(list,tag){const ids=[];for(const data of list||[]){cons
 
 const BOOT_T=Date.now();let rq=0;function render(){if(rq)return;rq=requestAnimationFrame(()=>{rq=0;draw();setTimeout(()=>runAutoNeeds(false),0)})}
 
-function setMe(){
+function setMe(){setTimeout(()=>{if(me&&window.morangoDev&&window.__seenFor!==me.id){window.__seenFor=me.id;window.morangoDev.seen({user:me.name})}},1500);
   let uid=null;try{uid=localStorage.getItem('bk-uid')}catch(e){}
   const u=uid&&S.users[uid];me=u&&u.active!==false?{...u}:null;
   if(me&&me.role==='ws'&&(me.locs||[]).length>1){let sel=null;try{sel=localStorage.getItem('bk-loc')}catch(_){}if(sel&&me.locs.includes(sel))me.loc=sel;else if(!me.locs.includes(me.loc))me.loc=me.locs[0]}
@@ -625,19 +652,21 @@ async function doSetup(){
   try{const ref=db.collection('users').doc();await ref.set({name,role:'admin',loc:'',color:0,active:true,ts:Date.now(),hash:await hashPin(ref.id,pin)});try{localStorage.setItem('bk-uid',ref.id)}catch(_){}S.view='home';S.users[ref.id]={id:ref.id,name,role:'admin',loc:'',color:0,active:true};setMe();render();toast('مرحبا '+name+' 🎉')}catch(er){e.textContent='ما تسجلش الحساب: '+(er.code||er.message);e.hidden=false}
 }
 function vLogin(){
+  if(window.morangoDev&&S.devOwner===undefined){devOwnerLoad();return `<div class="login">${MLOCK(.8)}<p class="muted">⏳</p></div>`}
+  const own=S.devOwner&&S.users[S.devOwner]&&S.users[S.devOwner].active!==false?S.devOwner:null;if(own&&!S.loginUser)S.loginUser=own;
   const u=S.loginUser&&S.users[S.loginUser];
   if(u){const locked=S.lockUntil>Date.now();
     return `<div class="login">${avatar(u,72)}<div><h1>${esc(u.name)}</h1><p class="muted">${ROLES[u.role]?.[1]||''} ${esc(roleLabel(u))}</p></div><p class="disp" style="font-size:1.1rem">🔑 دخل الكود ديالك</p>
-    ${pinPad('loginpin',{onDone:v=>tryLogin(u,v)})}<p class="err" id="loginerr" ${locked?'':'hidden'}>${locked?'بزاف ديال المحاولات. تسنى شوية وعاود.':''}</p><button class="link" data-act="loginback">ماشي أنا؟ رجع</button></div>`}
+    ${bioHas(u.id)?`<button class="btn primary block" data-act="biologin" style="min-height:58px;font-size:1.15rem">👆 دخل ب${bioName()}</button><p class="muted">ولا دخل الكود:</p>`:''}${pinPad('loginpin',{onDone:v=>tryLogin(u,v)})}<p class="err" id="loginerr" ${locked?'':'hidden'}>${locked?'بزاف ديال المحاولات. تسنى شوية وعاود.':''}</p>${own?`<p class="muted" style="font-size:.85rem">🔒 هاد الجهاز خاص بـ ${esc(u.name)}</p>`:'<button class="link" data-act="loginback">ماشي أنا؟ رجع</button>'}</div>`}
   const us=usersArr();
-  return `<div class="login">${MLOCK(.8)}<div><h1>${greet()}!</h1><p class="muted">شكون نتا؟ ضغط على السمية ديالك.</p></div>
+  return `<div class="login">${MLOCK(.8)}<div><h1>${greet()}!</h1><p class="muted">شكون نتا؟ ضغط على السمية ديالك.</p>${window.morangoDev?'<p class="muted" style="font-size:.85rem">📱 أول واحد يدخل فهاد الجهاز، الجهاز غادي يتربط بالحساب ديالو، وما غادي يبان فيه غير هو.</p>':''}</div>
   <div class="people">${us.map(u=>`<button class="person" data-act="pickuser" data-id="${u.id}">${avatar(u)}<b>${esc(u.name)}</b><span>${ROLES[u.role]?.[1]||''} ${esc(ROLES[u.role]?.[0]||'')}</span></button>`).join('')}</div>
   <p class="muted">ما لقيتيش السمية ديالك؟ طلب من المسير يزيدك.</p></div>`;
 }
 async function tryLogin(u,pin){
   const e=$('#loginerr');if(S.lockUntil>Date.now()){pinReset('loginpin',true);return}
   const h=await hashPin(u.id,pin);
-  if(h===u.hash){S.tries=0;try{localStorage.setItem('bk-uid',u.id)}catch(_){}S.loginUser=null;S.view='home';setMe();render();toast(greet()+' '+u.name+' 👋')}
+  if(h===u.hash){devClaim(u);S.tries=0;try{localStorage.setItem('bk-uid',u.id)}catch(_){}S.loginUser=null;S.view='home';setMe();render();toast(greet()+' '+u.name+' 👋')}
   else{S.tries++;if(S.tries>=5){S.lockUntil=Date.now()+30000;S.tries=0}pinReset('loginpin',true);if(e){e.textContent=S.lockUntil>Date.now()?'بزاف ديال المحاولات. تسنى 30 ثانية وعاود.':'الكود غالط، عاود.';e.hidden=false}}
 }
 /* in-app back: photo viewer, then open sheet, then previous screen, then home. Never leaves the app. */
@@ -962,7 +991,7 @@ const mediaBtns=(ids,label,em='📷')=>(ids||[]).filter(Boolean).map((id,i,a)=>`
 
 /* --- profile & team --- */
 function sheetProfile(){openSheet('🙂 الحساب ديالي',`<div class="lead">${avatar(me,56)}<div><h2>${esc(me.name)}</h2><div class="muted">${ROLES[me.role]?.[1]||''} ${esc(roleLabel(me))}</div></div></div>
-  <button type="button" class="btn danger block" data-act="logout">🚪 خروج (باش يدخل شي واحد آخر)</button>
+  <button type="button" class="btn danger block" data-act="logout">🚪 خروج (باش يدخل شي واحد آخر)</button>${BIO_OK?(bioHas(me.id)?`<button type="button" class="btn block" data-act="biooff">✋ حيّد الدخول ب${bioName()} فهاد الجهاز</button>`:`<button type="button" class="btn primary block" data-act="bioon">👆 فعّل الدخول ب${bioName()} فهاد الجهاز</button><p class="muted" style="font-size:.85rem">من بعد غير تضغط على سميتك وتحط صبعك ولا وجهك، بلا كود.</p>`):''}
   <span class="lbl">🔑 بدل الكود ديالك</span>${pinPad('newpin',{show:true})}${errP}<button class="btn primary block" type="submit">حفظ الكود الجديد</button>`,async f=>{
   const pin=f.newpin.value;if(pin.length!==4)return ferr('الكود خاصو 4 أرقام.');busy(f,true);try{await db.doc('users/'+me.id).update({hash:await hashPin(me.id,pin)});closeSheet();toast('🔑 الكود تبدل')}catch(e){fail(f,e)}})}
 function sheetUser(id){
@@ -2644,7 +2673,7 @@ const ACT={
   go:el=>{if(el.dataset.v==='report')S.rep.data=null;if(S.view!==el.dataset.v){S.hist.push(S.view);if(S.hist.length>30)S.hist.shift()}if(el.dataset.v==='home')S.hist=[];S.view=el.dataset.v;closeSheet();window.scrollTo(0,0);render()},
   close:()=>closeSheet(),closeviewer:()=>{$('#viewer').hidden=true},
   profile:()=>sheetProfile(),logout:()=>logout(),user:el=>sheetUser(el.dataset.id),
-  setup:()=>doSetup(),pickuser:el=>{S.loginUser=el.dataset.id;render()},loginback:()=>{S.loginUser=null;render()},
+  setup:()=>doSetup(),pickuser:el=>{S.loginUser=el.dataset.id;render()},biologin:()=>bioLogin(),bioon:()=>bioOn(),biooff:()=>bioOff(),loginback:()=>{S.loginUser=null;render()},
   pk:el=>pinKey(el.dataset.pin,el.dataset.k),
   pick:el=>{const box=el.parentNode;$$('.opt',box).forEach(b=>b.setAttribute('aria-pressed',String(b===el)));const h=box.parentNode.querySelector('input[type=hidden]');h.value=el.dataset.v;h.dispatchEvent(new Event('change',{bubbles:true}))},
   emo:el=>{const box=el.parentNode;const h=$('#iicon');const on=el.getAttribute('aria-pressed')!=='true';$$('button',box).forEach(b=>b.setAttribute('aria-pressed','false'));el.setAttribute('aria-pressed',String(on));h.value=on?el.dataset.v:''},
