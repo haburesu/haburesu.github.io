@@ -336,7 +336,7 @@ body{background:radial-gradient(1200px 520px at 100% -10%,color-mix(in srgb,var(
 <div id="viewer" hidden><div class="panel"><div class="ph"><h2>الدليل</h2><button class="x" data-act="closeviewer" aria-label="إغلاق">×</button></div><div class="pb" id="viewer-body"></div></div></div>
 
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Morango"><link rel="apple-touch-icon" href="icon-512.png"><link rel="icon" href="icon-192.png">
-<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103221454"}</script>
+<script>window.MORANGO_CFG={"url": "https://brxbykkrbpixrmjricco.supabase.co", "key": "sb_publishable_Z4BlEcmV2KvEW01prDcrRw_PmjsgEGl", "email": "app@morango.ma", "build": "20261103222843"}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>/* Morango standalone: Supabase backend behind the same db API the app uses (doc/collection/where/orderBy/limit/onSnapshot) */
 (function(){
@@ -1736,7 +1736,7 @@ const finState=(ws,id,d)=>{const plan=planQ(ws,id,d),sent=sentOn(ws,id,d),st=Mat
 function prodOrders(ws){const t=today(),tm=daysAgo(-1),dn=doneOn(ws,t);const lv=it=>it.kind==='final'?'final':isPre(it)?'pre':'inter';
   const fin=[];(planOf(ws,t)?.lines||[]).forEach(l=>{const it=S.items[l.item];if(it?.kind!=='final')return;const F=finState(ws,l.item,t);fin.push({id:l.item,lvl:'final',q:F.q,plan:F.plan,dn:dn[l.item]||0,day:t,fs:F})});
   const semi={[t]:{},[tm]:{}};WS.forEach(w=>{const SP=stagePlan(w.id);[t,tm].forEach(d=>Object.entries(SP[d]||{}).forEach(([id,o])=>{const si=S.items[id];if(si?.anyWs?w.id!==ws:si?.ws!==ws)return;const x=semi[d][id]||(semi[d][id]={q:0,via:new Set()});x.q+=o.q;x.dep=Math.max(x.dep||0,o.dep||0);o.via.forEach(v=>x.via.add(v));x.vq=x.vq||{};Object.entries(o.vq||{}).forEach(([k,v])=>x.vq[k]=(x.vq[k]||0)+v)}))});
-  const sl=d=>Object.entries(semi[d]).map(([id,o])=>({id,lvl:lv(S.items[id]),q:o.q,dn:d===t?(dn[id]||0):0,via:[...o.via],vq:o.vq||null,dep:o.dep||0,day:d})).sort((a,b)=>b.dep-a.dep);
+  const sl=d=>Object.entries(semi[d]).map(([id,o])=>({id,lvl:lv(S.items[id]),q:o.q,dn:d===t?(dn[id]||0):0,via:[...o.via],vq:o.vq||null,dep:o.dep||0,day:d})).sort((a,b)=>(+(S.items[b.id]?.first)||0)-(+(S.items[a.id]?.first)||0)||b.dep-a.dep);
   const cl=closesOn(ws,t);const all=[...sl(t),...fin].map(o=>cl[o.id]?{...o,cl:cl[o.id]}:o);Object.values(cl).forEach(c=>{if(!all.some(o=>o.id===c.item)&&S.items[c.item])all.push({id:c.item,lvl:lv(S.items[c.item]),q:0,dn:dn[c.item]||0,day:t,cl:c})});return{today:all,tomorrow:sl(tm),hasPlan:!!planOf(ws,t)}}
 function ordLock(list){const open=new Set(list.filter(o=>o.q>1e-9&&!o.cl).map(o=>o.id));
   const up=(id,seen=new Set(),dep=0)=>{const it=S.items[id];if(!it?.recipe?.lines?.length||dep>10)return [];let r=[];it.recipe.lines.forEach(l=>{if(seen.has(l.item))return;seen.add(l.item);if(open.has(l.item))r.push(l.item);if(S.items[l.item]?.egg){const E=EGG();if(E&&open.has(E.id)&&!r.includes(E.id))r.push(E.id)}r=r.concat(up(l.item,seen,dep+1))});return r};
